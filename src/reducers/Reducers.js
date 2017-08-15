@@ -17,6 +17,10 @@ function receiveMovies(state = [], action) {
 function receiveCharas(state = INITIAL_CHARAS_STATE, action) {
   switch (action.type) {
     case RECEIVE_CHARAS:
+      return Object.assign({}, state, {
+        charaLists: action.charaLists
+      });
+      /*
       // clear the character lists
       if (action.index === 0) {
         let dummy = [];
@@ -28,6 +32,7 @@ function receiveCharas(state = INITIAL_CHARAS_STATE, action) {
       return Object.assign({}, state, {
         charaLists: state.charaLists.concat(action.charaLists)
       })
+      */
     default:
       return state
   }

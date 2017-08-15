@@ -1,4 +1,4 @@
-import fetch from 'isomorphic-fetch';
+import axios from 'axios';
 
 export const RECEIVE_MOVIES = 'RECEIVE_MOVIES';
 export const RECEIVE_CHARAS = 'RECEIVE_CHARAS';
@@ -11,9 +11,11 @@ export function requestMovies() {
 // fetch movies
 function fetchMovies() {
   return dispatch => {
-    return fetch('http://swapi.co/api/films/')
-      .then((response) => response.json())
-      .then((json) => dispatch(receiveMovies(json)));
+    return axios.get('https://swapi.co/api/films/')
+      .then((res) => {
+        const movies = res.data.results.map(obj => obj.title);
+        dispatch(receiveMovies(movies));
+      });
   }
 }
 
@@ -22,7 +24,7 @@ function fetchMovies() {
 function receiveMovies(json) {
   return {
     type: RECEIVE_MOVIES,
-    movieLists: json.results.map(item => item.title)
+    movieLists: json
   }
 }
 
@@ -31,37 +33,32 @@ export function requestCharas(index) {
   return dispatch => (dispatch(fetchMovieUrls(index)));
 }
 
-// fetch characters
+// fetch urls of movie characters
 function fetchMovieUrls(index) {
   return dispatch => {
-    return fetch(`http://swapi.co/api/films/${index}`)
-      .then(response => response.json())
-      .then(json => dispatch(receiveMovieUrls(json)));
+    return axios.get(`https://swapi.co/api/films/${index}`)
+      .then(res => dispatch(fetchCharas(res.data.characters)));
   }
 }
 
-// fetch characters urls
-function receiveMovieUrls(json) {
+// fetch movie characters names with urls
+function fetchCharas(json) {
   return dispatch => {
-    json.characters.map((item, index) => dispatch(fetchChara(item, index)));
+    let requests = json.map(obj => axios.get(obj));
+    return axios.all(requests)
+      .then(results => {
+        let charas = results.map(res => res.data.name);
+        dispatch(receiveCharas(charas));
+      });
   }
 }
 
-// fetch character
-function fetchChara(url, index) {
-  return dispatch => {
-    return fetch(url)
-      .then(response => response.json())
-      .then(json => dispatch(receiveChara(json, index)));
-  }
-}
-
-// receive character
-// store character in charaLists
-function receiveChara(json, index) {
+// receive characters names
+// store characters names in charaLists
+function receiveCharas(json) {
   return {
     type: RECEIVE_CHARAS,
-    charaLists: json.name,
-    index: index
+    charaLists: json
   }
 }
+
